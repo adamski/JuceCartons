@@ -19,6 +19,7 @@
 #include "ModuleGenerator.h"
 #include "Module.h"
 #include "Directory.h"
+#include "Database.h"
 #include "ConfigFile.h"
 
 class App
@@ -177,10 +178,11 @@ private:
 		else
 			searchString = commandLine[0];
 
-		auto result = directory.getModulesByName(searchString); 
+		//auto result = directory.getModulesByName(searchString);
+		auto result = database.getModulesByName(searchString);
 
-		for (auto r: result)
-			std::cout << r.getSummaryString() << std::endl;
+//		for (auto r: result)
+//			std::cout << r.getSummaryString() << std::endl;
 	}
 
     void add()
@@ -194,6 +196,7 @@ private:
 	ConfigFile config;
 	JucerFile jucer;	
 	Directory directory;
+    Database database;
 
 	StringArray commandLine;
 };
