@@ -102,10 +102,10 @@ public:
     }
 
     /**
-    Here we assume we are going to have copies under jpm_modules and that therefore all the
+    Here we assume we are going to have copies under juce_modules and that therefore all the
     module paths will be the same for all plaforms. EXCEPT - where we are using a LocalPath
     source. */
-    void addModule (const String& moduleName, const String& modulePath = "./jpm_modules")
+    void addModule (const String& moduleName, const String& modulePath = "./juce_modules")
     {
         {
             ValueTree modulePathTree ("MODULEPATH");

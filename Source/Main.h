@@ -107,7 +107,7 @@ private:
 
             if (module.isValid())
             {
-                module.install (File::getCurrentWorkingDirectory().getChildFile ("jpm_modules"));
+                module.install (File::getCurrentWorkingDirectory().getChildFile ("juce_modules"));
                 config.addModule (module);
             }
         }
@@ -117,7 +117,7 @@ private:
     
     
 
-    /** Add a modules to the jpmfile.xml and install it. */
+    /** Add a module from the database and install it. */
     void installModule (const String& moduleId)
     {
         Database db;
@@ -125,8 +125,6 @@ private:
         var data = db.getModuleById (moduleId);
 
         printHeading ("installing: " + data["name"].toString() + "@" + data["version"].toString());
-        
-        // install module: base64 decode _attachments and unzip to folder..
         
         Identifier moduleZipId (moduleId + ".zip");
         MemoryBlock zipData = db.getZippedSource (moduleId, data);
@@ -149,7 +147,7 @@ private:
 //        DBG ("Zip file: " << outputZipFile.getNumEntries() << " entries");
         
         ZipFile zipFile(is);
-        File moduleFolder (File::getCurrentWorkingDirectory().getChildFile ("jpm_modules"));
+        File moduleFolder (File::getCurrentWorkingDirectory().getChildFile ("juce_modules"));
         moduleFolder.createDirectory();
         
         File target (moduleFolder.getChildFile (moduleId));
@@ -205,14 +203,14 @@ private:
     }
 
 
-    /** Installs any modules that are missing from the jpm_modules folder. */
+    /** Installs any modules that are missing from the juce_modules folder. */
     void installMissingModules()
     {
         auto allModules = config.getModules();
 
         for (auto module : allModules)
         {
-            auto jpmModulesFolder = File::getCurrentWorkingDirectory().getChildFile ("jpm_modules");
+            auto jpmModulesFolder = File::getCurrentWorkingDirectory().getChildFile ("juce_modules");
             auto name = module.getName();
 
             if (!jpmModulesFolder.getChildFile (name).exists())
@@ -248,7 +246,7 @@ private:
         if (commandLine.size() == 0)
         {
             printInfo ("installing missing modules");
-            printInfo ("to force a refresh delete the jpm_modules folder first)");
+            printInfo ("to force a refresh delete the juce_modules folder first)");
             installMissingModules();
         }
         else

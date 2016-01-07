@@ -221,10 +221,21 @@ public:
         
 //        String encodedData = memBlock.toBase64Encoding();
 //        DBG (encodedData);
+        
+        // distribution object
+        
+        String zipFileLocation =
+            request.getURL().toString(false) +
+            "/registry/" + id + "-" + moduleInfo["version"].toString() + ".zip";
+        
         int compressedSize = os.getDataSize();
         DBG ("compressedSize: " << compressedSize);
         
-
+        DynamicObject* distObj = new DynamicObject;
+        distObj->setProperty("zipfile", zipFileLocation);
+        distObj->setProperty("shasum", stringToSHA1 (os.toString()));
+        distObj->setProperty("compressedSize", compressedSize);
+        
 //        // Add as attachment to put request -- this method does not work, unknown reason
 //        DynamicObject* attachmentData = new DynamicObject;
 //        attachmentData->setProperty ("content_type", "application/zip");
@@ -235,16 +246,18 @@ public:
 //        var attachments = var(attachmentObj);
         
         // First check if this document exists
+        // TODO: Check if version exists already; do not allow if this name + version already exist
+        // Root should always be latest version, previous versions stored in "versions"
         
-        adamski::RestRequest::Response headResponse = request.head ("registry/" + id).execute();
-        if (checkStatus (headResponse))
-        {
-            // Document exists, set revision from head response
-            String rev = headResponse.headers.getValue("Etag", ""); // this works for HEAD request only
-            request.field ("_rev", rev.removeCharacters("\""));
-        }
+//        adamski::RestRequest::Response headResponse = request.head ("registry/" + id).execute();
+//        if (checkStatus (headResponse))
+//        {
+//            // Document exists, set revision from head response
+//            String rev = headResponse.headers.getValue("Etag", ""); // this works for HEAD request only
+//            request.field ("_rev", rev.removeCharacters("\""));
+//        }
         
-        adamski::RestRequest::Response response = request.put ("registry/" + id)
+        adamski::RestRequest::Response response = request.put ("registry/_design/app/_update/package/" + id)
         .field ("name", moduleInfo["name"])
         .field ("version", moduleInfo["version"])
         .field ("description", moduleInfo["description"])
@@ -253,7 +266,8 @@ public:
         .field ("repository", moduleInfo["repository"])
         .field ("dependencies", moduleInfo["dependencies"])
         .field ("maintainers", maintainers)
-        .field ("compressed-size", compressedSize)
+        .field ("compressedSize", compressedSize)
+        .field ("dist", var(distObj))
         //.field ("_attachments", attachments)
         .execute();
         
@@ -283,14 +297,14 @@ public:
     
     const int getAttachmentSize (const String& moduleId)
     {
-        return getModuleById (moduleId)["compressed-size"].operator int();
+        return getModuleById (moduleId)["compressedSize"].operator int();
     }
     
     const MemoryBlock getZippedSource (const String& moduleId, var data = var::null)
     {
         int compressedSize;
         if (data.isVoid()) compressedSize = getAttachmentSize (moduleId);
-        else compressedSize = data["compressed-size"];
+        else compressedSize = data["compressedSize"];
         
         MemoryBlock memBlock (getAttachment(moduleId, moduleId+".zip"));
         memBlock.setSize (compressedSize); // necessary to be able to read the zip file (feels like a hack)
